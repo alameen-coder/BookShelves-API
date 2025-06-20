@@ -8,6 +8,7 @@ import {
   ValidationPipe,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -22,8 +23,8 @@ export class BooksController {
       whitelist: true,
     }),
   )
-  create(@Body() dto: CreateBookDto) {
-    return this.booksService.create(dto);
+  create(@Body() createBookDto: CreateBookDto) {
+    return this.booksService.create(createBookDto);
   }
 
   @Get() // GET /books
@@ -32,18 +33,18 @@ export class BooksController {
   }
 
   @Get(':id') // GET /users/:id
-  findOne(@Body('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.booksService.findOne(id);
   }
 
   @Patch(':id') // PATCH /books/:id
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  update(@Param('id') id: string, @Body() dto: UpdateBookDto) {
-    return this.booksService.update(id, dto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateBookDto: UpdateBookDto) {
+    return this.booksService.update(id, updateBookDto);
   }
 
   @Delete(':id') // DELETE /books/:id
-  remove(@Param('id') id: string) {
-    return this.booksService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.booksService.delete(id);
   }
 }

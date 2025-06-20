@@ -13,14 +13,11 @@ async function bootstrap() {
     }),
   );
 
-  // Optional: Global prefix like /api
-  // app.setGlobalPrefix('api');
-
-  await app.listen(3000);
+  await app.listen(3001);
 }
 bootstrap()
   .then(() => {
-    console.log('Bookshelf API is running on http://localhost:3000');
+    console.log('Bookshelf API is running on http://localhost:3001');
   })
   .catch((err) => {
     console.error('Failed to start Bookshelf API:', err);

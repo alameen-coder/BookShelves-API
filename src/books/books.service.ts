@@ -1,51 +1,75 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
+import { CreateBookDto } from './dto/create-book.dto';
 
 @Injectable()
 export class BooksService {
-  constructor(private prisma: PrismaService) {}
+  private books: Array<{
+    id: number;
+    title: string;
+    author: string;
+    year: string;
+    description: string;
+  }> = [
+    // {
+    //   id: 1,
+    //   title: 'Black book',
+    //   author: 'james berry',
+    //   year: '2017',
+    //   description: 'friction of our minds',
+    // },
+    // {
+    //   id: 2,
+    //   title: 'Black book',
+    //   author: 'james berry',
+    //   year: '2012',
+    //   description: 'friction of our minds',
+    // },
+  ];
 
-  // Create a new book
-  async create(createBookDto: CreateBookDto) {
-    return await this.prisma.book.create({
-      data: createBookDto,
-    });
+  findAll() {
+    return this.books;
   }
 
-  // Get all books
-  async findAll() {
-    return await this.prisma.book.findMany();
-  }
-
-  // Get one book by ID, or throw if not found
-  async findOne(id: string) {
-    const book = await this.prisma.book.findUnique({
-      where: { id },
-    });
-
+  findOne(id: number) {
+    const book = this.books.find((book) => book.id === id);
     if (!book) {
-      throw new NotFoundException('Book not found');
+      throw new NotFoundException(`Book with id ${id} has been deleted or does not exist.`);
     }
-
     return book;
   }
 
-  // Update a book by ID
-  async update(id: string, updateBookDto: UpdateBookDto) {
-    await this.findOne(id); // ensures it exists or throws
-    return await this.prisma.book.update({
-      where: { id },
-      data: updateBookDto,
-    });
+  create(createBookDto: CreateBookDto) {
+    const booksByHighestId = [...this.books].sort((a, b) => b.id - a.id);
+    const nextId = booksByHighestId.length > 0 ? booksByHighestId[0].id + 1 : 1;
+    const newBook = {
+      id: nextId,
+      ...createBookDto,
+      year: createBookDto.year.toString(),
+      description: createBookDto.description || '',
+    };
+    this.books.push(newBook);
+    return newBook;
   }
 
-  // Delete a book by ID
-  async remove(id: string) {
-    await this.findOne(id); // ensures it exists or throws
-    return await this.prisma.book.delete({
-      where: { id },
+  update(id: number, updatedBookDto: UpdateBookDto) {
+    this.books = this.books.map((book) => {
+      if (book.id === id) {
+        return {
+          ...book,
+          ...updatedBookDto,
+          year: updatedBookDto.year?.toString() || book.year.toString(),
+        };
+      }
+      return book;
     });
+    return this.findOne(id);
+  }
+
+  delete(id: number) {
+    const removedBook = this.findOne(id);
+
+    this.books = this.books.filter((book) => book.id !== id);
+    return removedBook;
   }
 }
